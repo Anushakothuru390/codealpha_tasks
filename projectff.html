@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Management Tool</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        background: #f4f6f8;
+    }
+    header {
+        background: #3f51b5;
+        color: white;
+        padding: 15px;
+        text-align: center;
+        font-size: 24px;
+    }
+    .container {
+        display: flex;
+        padding: 20px;
+        gap: 20px;
+    }
+    .projects, .tasks {
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        flex: 1;
+    }
+    h2 {
+        margin-top: 0;
+        color: #333;
+    }
+    input, select, button, textarea {
+        width: 100%;
+        padding: 8px;
+        margin: 8px 0;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+    }
+    button {
+        background: #3f51b5;
+        color: white;
+        border: none;
+        cursor: pointer;
+    }
+    button:hover {
+        background: #303f9f;
+    }
+    ul {
+        list-style: none;
+        padding: 0;
+    }
+    li {
+        background: #f0f0f0;
+        padding: 10px;
+        border-radius: 6px;
+        margin-bottom: 10px;
+    }
+    .task {
+        background: #e3f2fd;
+        margin: 8px 0;
+        padding: 10px;
+        border-radius: 5px;
+    }
+    .comments {
+        margin-top: 8px;
+    }
+    .comment {
+        font-size: 14px;
+        background: #fff;
+        padding: 5px;
+        margin-top: 4px;
+        border-radius: 4px;
+        border: 1px solid #ddd;
+    }
+</style>
+</head>
+<body>
+<header>Project Management Tool</header>
+
+<div class="container">
+    <!-- Project Creation -->
+    <div class="projects">
+        <h2>Create Project</h2>
+        <input type="text" id="projectName" placeholder="Enter project name">
+        <button onclick="createProject()">Create Project</button>
+        <h3>Projects:</h3>
+        <ul id="projectList"></ul>
+    </div>
+
+    <!-- Task Management -->
+    <div class="tasks">
+        <h2>Add Task</h2>
+        <select id="projectSelect">
+            <option value="">Select Project</option>
+        </select>
+        <input type="text" id="taskName" placeholder="Task name">
+        <input type="text" id="assignedTo" placeholder="Assign to (name)">
+        <button onclick="addTask()">Add Task</button>
+        
+        <h3>Tasks:</h3>
+        <div id="taskBoard"></div>
+    </div>
+</div>
+
+<script>
+    let projects = [];
+    let tasks = [];
+
+    function createProject() {
+        const name = document.getElementById('projectName').value.trim();
+        if (name === '') {
+            alert('Please enter a project name');
+            return;
+        }
+        projects.push(name);
+        document.getElementById('projectName').value = '';
+        updateProjectList();
+        updateProjectSelect();
+    }
+
+    function updateProjectList() {
+        const list = document.getElementById('projectList');
+        list.innerHTML = '';
+        projects.forEach(project => {
+            const li = document.createElement('li');
+            li.textContent = project;
+            list.appendChild(li);
+        });
+    }
+
+    function updateProjectSelect() {
+        const select = document.getElementById('projectSelect');
+        select.innerHTML = '<option value="">Select Project</option>';
+        projects.forEach(project => {
+            const option = document.createElement('option');
+            option.value = project;
+            option.textContent = project;
+            select.appendChild(option);
+        });
+    }
+
+    function addTask() {
+        const project = document.getElementById('projectSelect').value;
+        const name = document.getElementById('taskName').value.trim();
+        const assignedTo = document.getElementById('assignedTo').value.trim();
+
+        if (!project || !name || !assignedTo) {
+            alert('Please fill all fields');
+            return;
+        }
+
+        const task = {
+            project,
+            name,
+            assignedTo,
+            comments: []
+        };
+
+        tasks.push(task);
+        document.getElementById('taskName').value = '';
+        document.getElementById('assignedTo').value = '';
+        renderTasks();
+    }
+
+    function renderTasks() {
+        const board = document.getElementById('taskBoard');
+        board.innerHTML = '';
+
+        projects.forEach(project => {
+            const projectTasks = tasks.filter(t => t.project === project);
+            if (projectTasks.length > 0) {
+                const projectDiv = document.createElement('div');
+                projectDiv.innerHTML = `<h3>${project}</h3>`;
+                projectTasks.forEach((task, index) => {
+                    const taskDiv = document.createElement('div');
+                    taskDiv.className = 'task';
+                    taskDiv.innerHTML = `
+                        <strong>${task.name}</strong> (Assigned to: ${task.assignedTo})<br>
+                        <input type="text" placeholder="Add comment" onkeydown="if(event.key==='Enter'){addComment(${index}, this)}">
+                        <div class="comments">${task.comments.map(c => `<div class="comment">${c}</div>`).join('')}</div>
+                    `;
+                    projectDiv.appendChild(taskDiv);
+                });
+                board.appendChild(projectDiv);
+            }
+        });
+    }
+
+    function addComment(index, input) {
+        const comment = input.value.trim();
+        if (comment === '') return;
+        tasks[index].comments.push(comment);
+        input.value = '';
+        renderTasks();
+    }
+</script>
+</body>
+</html>
